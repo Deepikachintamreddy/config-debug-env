@@ -1,6 +1,5 @@
 ---
 title: ConfigDebugEnv
-emoji: ??
 colorFrom: red
 colorTo: yellow
 sdk: docker
@@ -15,4 +14,4 @@ pinned: false
 
 # ConfigDebugEnv
 
-Config file debugging environment for OpenEnv with 7 tasks across JSON, YAML, Dockerfile, docker-compose, Kubernetes, GitHub Actions, and nginx.
+Config file debugging environment for OpenEnv with 7 tasks.
