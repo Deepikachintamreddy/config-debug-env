@@ -1,11 +1,18 @@
 ---
-title: Config Debug Env
-emoji: 🐠
-colorFrom: gray
-colorTo: red
+title: ConfigDebugEnv
+emoji: ??
+colorFrom: red
+colorTo: yellow
 sdk: docker
+app_port: 7860
+tags:
+  - openenv
+  - devops
+  - configuration
+  - debugging
 pinned: false
-license: mit
 ---
 
-Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
+# ConfigDebugEnv
+
+Config file debugging environment for OpenEnv with 7 tasks across JSON, YAML, Dockerfile, docker-compose, Kubernetes, GitHub Actions, and nginx.
