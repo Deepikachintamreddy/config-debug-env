@@ -1,5 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from typing import Optional
+import json
+import gradio as gr
 
 from server.models import ConfigDebugAction, ConfigDebugObservation, ConfigDebugState
 from server.tasks.task_registry import get_task, get_all_task_ids, TASK_ORDER
@@ -86,9 +88,8 @@ def _build_state() -> ConfigDebugState:
 # --- API Endpoints ---
 
 
-@app.get("/")
-def root():
-def root2():
+@app.get("/info")
+def info():
     return {"name": "ConfigDebugEnv", "version": "1.0.0", "status": "running"}
 
 
@@ -191,8 +192,6 @@ def observation():
 
 
 # --- Gradio Web UI ---
-import json
-import gradio as gr
 
 
 def ui_reset():
