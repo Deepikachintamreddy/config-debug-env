@@ -3,4 +3,3 @@ __pycache__
 .git
 test_*.py
 validate-submission.sh
-fix_endings.py
