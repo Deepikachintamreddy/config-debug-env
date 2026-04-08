@@ -9,7 +9,6 @@ RUN useradd -m -u 1000 user
 COPY --chown=user . .
 USER user
 
-ENV ENABLE_WEB_INTERFACE=true
 EXPOSE 7860
 
-CMD ["python", "-m", "uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["python", "-m", "uvicorn", "server.env:app", "--host", "0.0.0.0", "--port", "7860"]

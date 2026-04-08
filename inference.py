@@ -25,11 +25,11 @@ from openai import OpenAI
 
 IMAGE_NAME = os.getenv("IMAGE_NAME")
 API_KEY = os.getenv("HF_TOKEN") or os.getenv("API_KEY")
-API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
-MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
+API_BASE_URL = os.getenv("API_BASE_URL") or "https://router.huggingface.co/v1"
+MODEL_NAME = os.getenv("MODEL_NAME") or "Qwen/Qwen2.5-72B-Instruct"
 TASK_NAME = os.getenv("CONFIG_DEBUG_TASK", "config-debug")
 BENCHMARK = os.getenv("CONFIG_DEBUG_BENCHMARK", "config_debug_env")
-MAX_STEPS = 35  # 7 tasks x 5 steps each
+MAX_STEPS = 35  # 7 tasks × 5 steps each
 TEMPERATURE = 0.1
 MAX_TOKENS = 2000
 SUCCESS_SCORE_THRESHOLD = 0.5  # normalized score in [0, 1]
@@ -83,13 +83,13 @@ def build_user_prompt(obs: dict, step: int, history: List[str]) -> str:
     history_block = "\n".join(history[-4:]) if history else "None"
     return textwrap.dedent(
         f"""
-        Fix the following broken {obs.get('file_type', 'unknown')} configuration file.
+        Fix the following broken {obs['file_type']} configuration file.
 
-        Task: {obs.get('task_description', '')}
-        Difficulty: {obs.get('difficulty', '')}
-        Number of bugs to find: {obs.get('num_bugs', 0)}
-        Bugs fixed so far: {obs.get('bugs_found_so_far', 0)}
-        Error message: {obs.get('error_message', '')}
+        Task: {obs['task_description']}
+        Difficulty: {obs['difficulty']}
+        Number of bugs to find: {obs['num_bugs']}
+        Bugs fixed so far: {obs['bugs_found_so_far']}
+        Error message: {obs['error_message']}
         Step: {step}
 
         Previous attempts:
@@ -97,7 +97,7 @@ def build_user_prompt(obs: dict, step: int, history: List[str]) -> str:
 
         Broken configuration:
         ```
-        {obs.get('broken_config', '')}
+        {obs['broken_config']}
         ```
 
         Return ONLY the fixed configuration file content.
@@ -133,7 +133,7 @@ async def main() -> None:
     import sys
 
     class HTTPEnvClient:
-        """Simple HTTP client that works with both old and new OpenEnv API formats."""
+        """Simple HTTP client that mimics the OpenEnv SDK interface."""
 
         def __init__(self, base_url: str):
             self.base_url = base_url.rstrip("/")
@@ -145,17 +145,7 @@ async def main() -> None:
             return resp.json()
 
         async def step(self, action_data: dict):
-            # Try create_app format first: {"action": {...}}
-            resp = await self.http.post(
-                f"{self.base_url}/step",
-                json={"action": action_data},
-            )
-            if resp.status_code == 422:
-                # Fallback to direct format: {...}
-                resp = await self.http.post(
-                    f"{self.base_url}/step",
-                    json=action_data,
-                )
+            resp = await self.http.post(f"{self.base_url}/step", json=action_data)
             resp.raise_for_status()
             return resp.json()
 
@@ -176,34 +166,31 @@ async def main() -> None:
     try:
         result = await env.reset()
         obs = result["observation"]
+        state = result["state"]
 
         step_num = 0
-        done = result.get("done", False)
-
-        while not done:
+        while not state["is_done"]:
             step_num += 1
 
             fixed_config = get_model_message(client, obs, step_num, history)
 
             step_result = await env.step({"fixed_config": fixed_config})
             obs = step_result["observation"]
-            reward = step_result.get("reward", 0.0) or 0.0
-            done = step_result.get("done", False)
-
-            # Get error from observation
-            error_msg = obs.get("error_message", "")
-            error = error_msg if error_msg and error_msg != "All checks passed!" else None
+            state = step_result["state"]
+            reward = step_result.get("reward", 0.0)
+            done = state["is_done"]
+            info = step_result.get("info", {})
+            error = info.get("error_message") if info.get("error_message") != "All checks passed!" else None
 
             rewards.append(reward)
             steps_taken = step_num
 
-            task_id = obs.get("task_id", "unknown")
-            action_summary = f"fix({task_id})"
+            action_summary = f"fix({info.get('task_id', 'unknown')})"
             log_step(step=step_num, action=action_summary, reward=reward, done=done, error=error)
 
             history.append(f"Step {step_num}: {action_summary} -> reward {reward:+.2f}")
 
-            if done or step_num >= MAX_STEPS:
+            if done:
                 break
 
         score = sum(rewards) / MAX_TOTAL_REWARD if MAX_TOTAL_REWARD > 0 else 0.0
