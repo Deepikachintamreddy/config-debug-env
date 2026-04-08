@@ -124,6 +124,7 @@ def step(action: ConfigDebugAction):
 
     # Run the grader
     reward, error_message, bugs_fixed = task.grader(action.fixed_config)
+        reward = max(0.01, min(0.99, reward))
 
     env_state.current_step += 1
     env_state.bugs_found_so_far = len(bugs_fixed)
@@ -133,7 +134,7 @@ def step(action: ConfigDebugAction):
     env_state.current_error_message = error_message
 
     # Check if task is complete (perfect score or max steps reached)
-    task_done = reward >= 1.0 or env_state.current_step >= MAX_STEPS_PER_TASK
+    task_done = reward >= 0.99 or env_state.current_step >= MAX_STEPS_PER_TASK
 
     task_reward = reward  # Reward for this step
 
@@ -223,13 +224,14 @@ def ui_step(fixed_config):
     task_id = _get_current_task_id()
     task = get_task(task_id)
     reward, error_message, bugs_fixed = task.grader(fixed_config)
+    reward = max(0.01, min(0.99, reward))
 
     env_state.current_step += 1
     env_state.bugs_found_so_far = len(bugs_fixed)
     env_state.previous_reward = round(reward, 4)
     env_state.current_error_message = error_message
 
-    task_done = reward >= 1.0 or env_state.current_step >= MAX_STEPS_PER_TASK
+    task_done = reward >= 0.99 or env_state.current_step >= MAX_STEPS_PER_TASK
 
     if task_done:
         env_state.total_reward += reward
