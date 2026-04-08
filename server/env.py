@@ -124,7 +124,7 @@ def step(action: ConfigDebugAction):
 
     # Run the grader
     reward, error_message, bugs_fixed = task.grader(action.fixed_config)
-        reward = max(0.01, min(0.99, reward))
+    reward = max(0.01, min(0.99, reward))
 
     env_state.current_step += 1
     env_state.bugs_found_so_far = len(bugs_fixed)
