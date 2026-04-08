@@ -1,0 +1,12 @@
+name: config-debug-env
+description: "An RL environment for training AI agents to debug broken configuration files (JSON, YAML, Dockerfile, docker-compose, Kubernetes, GitHub Actions, nginx). Features 7 tasks with cascading multi-layer bugs across syntax, semantic, runtime, and integration layers."
+version: "1.0.0"
+author: "meta-hackathon-participant"
+tags:
+  - devops
+  - configuration
+  - debugging
+  - infrastructure
+action_model: server.models.ConfigDebugAction
+observation_model: server.models.ConfigDebugObservation
+state_model: server.models.ConfigDebugState
