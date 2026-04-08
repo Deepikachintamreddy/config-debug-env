@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import RedirectResponse
 from typing import Optional
 
 from server.models import ConfigDebugAction, ConfigDebugObservation, ConfigDebugState
@@ -88,6 +89,10 @@ def _build_state() -> ConfigDebugState:
 
 @app.get("/")
 def root():
+    return RedirectResponse(url="/web")
+
+@app.get("/info")
+def info():
     return {"name": "ConfigDebugEnv", "version": "1.0.0", "status": "running"}
 
 
