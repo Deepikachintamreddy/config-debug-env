@@ -187,3 +187,118 @@ def observation():
             detail="Environment is done. Call /reset to start a new episode.",
         )
     return _build_observation().model_dump()
+
+
+# --- Gradio Web UI ---
+import json
+import gradio as gr
+
+
+def ui_reset():
+    env_state.reset_state()
+    obs = _build_observation()
+    st = _build_state()
+    return (
+        f"Task: {obs.task_id} | Difficulty: {obs.difficulty} | Bugs: {obs.num_bugs}",
+        obs.task_description,
+        obs.broken_config,
+        obs.error_message,
+        json.dumps(st.model_dump(), indent=2),
+        "Environment reset. Submit a fixed config to begin.",
+    )
+
+
+def ui_step(fixed_config):
+    if env_state.is_done:
+        st = _build_state()
+        return (
+            "All tasks completed!",
+            "",
+            "",
+            "Episode done. Click Reset to start again.",
+            json.dumps(st.model_dump(), indent=2),
+            f"Final score: {env_state.total_reward:.1f} / {len(TASK_ORDER)}.0",
+        )
+
+    task_id = _get_current_task_id()
+    task = get_task(task_id)
+    reward, error_message, bugs_fixed = task.grader(fixed_config)
+
+    env_state.current_step += 1
+    env_state.bugs_found_so_far = len(bugs_fixed)
+    env_state.previous_reward = round(reward, 4)
+    env_state.current_error_message = error_message
+
+    task_done = reward >= 1.0 or env_state.current_step >= MAX_STEPS_PER_TASK
+
+    if task_done:
+        env_state.total_reward += reward
+        env_state.tasks_completed.append(task_id)
+        env_state.current_task_index += 1
+        env_state.current_step = 0
+        env_state.bugs_found_so_far = 0
+        env_state.current_error_message = None
+        env_state.current_broken_config = None
+        if env_state.current_task_index >= len(env_state.task_ids):
+            env_state.is_done = True
+    else:
+        env_state.current_broken_config = fixed_config
+
+    obs = _build_observation()
+    st = _build_state()
+    history = f"Reward: {reward:.2f} | Bugs fixed: {bugs_fixed} | Task done: {task_done}\nFeedback: {error_message}"
+
+    return (
+        f"Task: {obs.task_id} | Difficulty: {obs.difficulty} | Bugs: {obs.num_bugs}",
+        obs.task_description,
+        obs.broken_config,
+        obs.error_message,
+        json.dumps(st.model_dump(), indent=2),
+        history,
+    )
+
+
+def ui_get_state():
+    st = _build_state()
+    return json.dumps(st.model_dump(), indent=2)
+
+
+with gr.Blocks(title="ConfigDebugEnv", theme=gr.themes.Soft()) as demo:
+    gr.Markdown("# ConfigDebugEnv")
+    gr.Markdown("An RL environment for debugging broken config files across 7 real-world formats: JSON, YAML, Dockerfile, docker-compose, Kubernetes, GitHub Actions, nginx.")
+
+    with gr.Row():
+        with gr.Column(scale=1):
+            gr.Markdown("### HumanAgent Interface")
+            task_info = gr.Textbox(label="Current Task", interactive=False)
+            task_desc = gr.Textbox(label="Task Description", interactive=False, lines=2)
+            broken_config = gr.Textbox(label="Broken Config", interactive=False, lines=10)
+            error_msg = gr.Textbox(label="Error Message", interactive=False, lines=2)
+
+            gr.Markdown("### Take Action")
+            fixed_config_input = gr.Textbox(label="Your Fixed Config", placeholder="Paste your fixed configuration here...", lines=10)
+            with gr.Row():
+                reset_btn = gr.Button("Reset Environment", variant="secondary")
+                step_btn = gr.Button("Step", variant="primary")
+                state_btn = gr.Button("Get State", variant="secondary")
+
+        with gr.Column(scale=1):
+            gr.Markdown("### State Observer")
+            state_display = gr.Textbox(label="Current State", interactive=False, lines=12)
+            history_display = gr.Textbox(label="Action History / Reward", interactive=False, lines=4)
+
+    reset_btn.click(
+        fn=ui_reset,
+        outputs=[task_info, task_desc, broken_config, error_msg, state_display, history_display],
+    )
+    step_btn.click(
+        fn=ui_step,
+        inputs=[fixed_config_input],
+        outputs=[task_info, task_desc, broken_config, error_msg, state_display, history_display],
+    )
+    state_btn.click(
+        fn=ui_get_state,
+        outputs=[state_display],
+    )
+
+app = gr.mount_gradio_app(app, demo, path="/web")
