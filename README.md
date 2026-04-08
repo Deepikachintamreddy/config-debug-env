@@ -1,94 +1,61 @@
-## 📈 AI Investment Agent
+---
+title: ConfigDebugEnv
+colorFrom: red
+colorTo: yellow
+sdk: docker
+app_port: 7860
+tags:
+  - openenv
+  - devops
+  - configuration
+  - debugging
+pinned: false
+---
 
-### 🎓 FREE Step-by-Step Tutorial 
-**👉 [Click here to follow our complete step-by-step tutorial](https://www.theunwindai.com/p/build-ai-investment-agent-with-gpt-4o) and learn how to build this from scratch with detailed code walkthroughs, explanations, and best practices.**
+# ConfigDebugEnv
 
-This AI-powered investment agent is built with Agno's AgentOS framework that analyzes stocks and generates detailed investment reports. By using GPT-5.2 with Yahoo Finance data, this app provides valuable insights to help you make informed investment decisions.
+An RL environment where AI agents learn to debug broken configuration files across 7 real-world formats. Built for the Meta PyTorch OpenEnv Hackathon x SST.
 
-### Features
-- Compare the performance of two stocks
-- Retrieve comprehensive company information
-- Get the latest company news and analyst recommendations
-- Beautiful web UI powered by AgentOS
+## Real-World Problem
 
-### How to get Started?
+Configuration file errors are one of the most common causes of deployment failures and CI/CD pipeline breakdowns. ConfigDebugEnv trains AI agents to identify and fix these bugs automatically across JSON, YAML, Dockerfile, docker-compose, Kubernetes, GitHub Actions, and nginx configs.
 
-1. Clone the GitHub repository
+## Tasks
 
-```bash
-git clone https://github.com/Shubhamsaboo/awesome-llm-apps.git
-cd advanced_ai_agents/single_agent_apps/ai_investment_agent
-```
-2. Install the required dependencies:
+- task1_json (Easy, 2 bugs) - App config with missing comma and wrong type
+- task2_yaml (Easy, 2 bugs) - Service config with indentation and missing field
+- task3_dockerfile (Medium, 3 bugs) - Multi-stage build with syntax and logic errors
+- task4_compose (Medium, 4 bugs) - Multi-service setup with networking issues
+- task5_k8s (Hard, 5 bugs) - Deployment manifest with label and spec errors
+- task6_github_actions (Hard, 5 bugs) - CI/CD workflow with trigger and syntax issues
+- task7_nginx (Very Hard, 6 bugs) - Reverse proxy config with directive errors
 
-```bash
-pip install -r requirements.txt
-```
-3. Get your OpenAI API Key
+## Action Space
 
-- Sign up for an [OpenAI account](https://platform.openai.com/) and obtain your API key.
-- Export your API key:
-```bash
-export OPENAI_API_KEY="your-api-key-here"
-```
+The agent submits: fixed_config (str) - the corrected configuration file content.
 
-4. Run the AgentOS App
-```bash
-python investment_agent.py
-```
+## Observation Space
 
-5. Open your web browser and navigate to the URL provided in the console output to interact with the AI investment agent through the playground interface.
+The agent receives: broken_config, file_type, error_message, task_id, task_description, difficulty, num_bugs, bugs_found_so_far, previous_reward.
 
-6. Connecting Your AgentOS
+## Reward Function
 
-To manage, monitor, and interact with your financial agent through the AgentOS Control Plane (from your browser), you need to connect your running AgentOS instance:
+Rewards use partial credit: reward = bugs_fixed / total_bugs. Perfect fix = 1.0 and advances to next task. Max 5 attempts per task.
 
-**Step-by-step guide:**
+## API Endpoints
 
-- Visit the official documentation: [Connecting Your OS](https://docs.agno.com/agent-os/connecting-your-os)
-- Follow the steps in the guide to register your local AgentOS and establish the connection.
+- POST /reset - Reset environment
+- POST /step - Submit a fixed config
+- GET /state - Get current state
+- GET /observation - Get current observation
+- GET /docs - Swagger API docs
 
-### 🎯 AI INVESTMENT AGENT - OUTPUT
+## Setup
 
-✅ SERVER STATUS: ACTIVE
-   URL: http://localhost:7777
+Run locally: pip install fastapi uvicorn pydantic pyyaml httpx openai gradio && uvicorn server.env:app --host 0.0.0.0 --port 7860
 
-📊 AGENT CONFIGURATION
+Run with Docker: docker build -t config-debug-env . && docker run -p 7860:7860 config-debug-env
 
-Agent ID: ai-investment-agent
-Model: GPT-5.2-2025-12-11
-Framework: Agno AgentOS
-Debug Mode: ENABLED
+## Baseline Results
 
-🔧 REGISTERED TOOLS (Yahoo Finance)
-
-✓ get_current_stock_price
-✓ get_company_info
-✓ get_stock_fundamentals
-✓ get_income_statements
-✓ get_key_financial_ratios
-✓ get_analyst_recommendations
-✓ get_company_news
-✓ get_technical_indicators
-✓ get_historical_stock_prices
-
-🚀 HOW TO GET RESULTS
-
-OPTION 1 - Interactive Web Interface (RECOMMENDED):
-   1. Open your browser
-   2. Go to: http://localhost:7777
-   3. Type investment questions like:
-      • "What is Apple's current stock price?"
-      • "Compare Tesla and Ford stocks"
-      • "Is Microsoft a good investment?"
-      • "Get latest news about Amazon"
-
-OPTION 2 - API Request (Programmatic):
-   Can make HTTP requests to the running server
-
-📝 SERVER LOGS
-
-✓ Uvicorn running on http://localhost:7777
-✓ Auto-reload enabled (watches for code changes)
-✓ Application startup complete
-✓ Ready to handle requests
+Qwen/Qwen2.5-72B-Instruct: 7/7 tasks, score = 1.000
