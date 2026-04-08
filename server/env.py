@@ -1,5 +1,4 @@
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import RedirectResponse
 from typing import Optional
 
 from server.models import ConfigDebugAction, ConfigDebugObservation, ConfigDebugState
@@ -89,10 +88,7 @@ def _build_state() -> ConfigDebugState:
 
 @app.get("/")
 def root():
-    return RedirectResponse(url="/web")
-
-@app.get("/info")
-def info():
+def root2():
     return {"name": "ConfigDebugEnv", "version": "1.0.0", "status": "running"}
 
 
@@ -306,4 +302,4 @@ with gr.Blocks(title="ConfigDebugEnv", theme=gr.themes.Soft()) as demo:
         outputs=[state_display],
     )
 
-app = gr.mount_gradio_app(app, demo, path="/web")
+app = gr.mount_gradio_app(app, demo, path="/")
