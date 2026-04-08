@@ -52,9 +52,15 @@ Rewards use partial credit: reward = bugs_fixed / total_bugs. Perfect fix = 1.0 
 
 ## Setup
 
-Run locally: pip install fastapi uvicorn pydantic pyyaml httpx openai gradio && uvicorn server.env:app --host 0.0.0.0 --port 7860
+Run locally:
 
-Run with Docker: docker build -t config-debug-env . && docker run -p 7860:7860 config-debug-env
+    pip install fastapi uvicorn pydantic pyyaml httpx openai gradio
+    uvicorn server.env:app --host 0.0.0.0 --port 7860
+
+Run with Docker:
+
+    docker build -t config-debug-env .
+    docker run -p 7860:7860 config-debug-env
 
 ## Baseline Results
 
