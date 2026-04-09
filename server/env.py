@@ -94,9 +94,11 @@ def info():
 
 
 @app.post("/reset")
-def reset():
+def reset(task_id: str = None):
     """Reset the environment to initial state, return first observation."""
     env_state.reset_state()
+    if task_id and task_id in env_state.task_ids:
+        env_state.current_task_index = env_state.task_ids.index(task_id)
 
     observation = _build_observation()
     state = _build_state()

@@ -1,0 +1,5 @@
+data = open(chr(34)+chr(115)+chr(101)+chr(114)+chr(118)+chr(101)+chr(114)+chr(47)+chr(101)+chr(110)+chr(118)+chr(46)+chr(112)+chr(121)+chr(34),chr(114)+chr(98)).read()
+data = data.replace(b"def reset():", b"def reset(task_id: str = None):")
+data = data.replace(b"    env_state.reset_state()\n\n    observation", b"    env_state.reset_state()\n    if task_id and task_id in env_state.task_ids:\n        env_state.current_task_index = env_state.task_ids.index(task_id)\n\n    observation")
+open(chr(34)+chr(115)+chr(101)+chr(114)+chr(118)+chr(101)+chr(114)+chr(47)+chr(101)+chr(110)+chr(118)+chr(46)+chr(112)+chr(121)+chr(34),chr(119)+chr(98)).write(data)
+print(chr(68)+chr(111)+chr(110)+chr(101))
