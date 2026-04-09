@@ -194,6 +194,34 @@ def observation():
     return _build_observation().model_dump()
 
 
+
+@app.get("/metadata")
+def metadata():
+    return {
+        "env_name": "config_debug_env",
+        "version": "1.0.0",
+        "description": "Config file debugging environment",
+        "tasks": [
+            {"id": "task1_json", "difficulty": "easy", "num_bugs": 2, "has_grader": True},
+            {"id": "task2_yaml", "difficulty": "easy", "num_bugs": 2, "has_grader": True},
+            {"id": "task3_dockerfile", "difficulty": "medium", "num_bugs": 3, "has_grader": True},
+            {"id": "task4_compose", "difficulty": "medium", "num_bugs": 4, "has_grader": True},
+            {"id": "task5_k8s", "difficulty": "hard", "num_bugs": 5, "has_grader": True},
+            {"id": "task6_github_actions", "difficulty": "hard", "num_bugs": 5, "has_grader": True},
+            {"id": "task7_nginx", "difficulty": "very_hard", "num_bugs": 6, "has_grader": True},
+        ],
+        "action_model": "ConfigDebugAction",
+        "observation_model": "ConfigDebugObservation",
+    }
+
+@app.get("/schema")
+def schema():
+    return {
+        "action": ConfigDebugAction.model_json_schema(),
+        "observation": ConfigDebugObservation.model_json_schema(),
+        "state": ConfigDebugState.model_json_schema(),
+    }
+
 # --- Gradio Web UI ---
 
 
