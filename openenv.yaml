@@ -1,62 +1,87 @@
-spec_version: 1
 name: config-debug-env
-type: space
-runtime: fastapi
-app: server.app:app
-port: 7860
-description: "An RL environment for training AI agents to debug broken configuration files"
 version: "1.0.0"
-author: "meta-hackathon-participant"
+description: >
+  Real-world configuration file debugging environment for AI agent training.
+  An agent is given a broken config file and must fix all bugs in it.
+author: "A2K Team"
 tags:
+  - openenv
   - devops
   - configuration
   - debugging
-  - infrastructure
-
-action_model: server.models:ConfigDebugAction
-observation_model: server.models:ConfigDebugObservation
-state_model: server.models:ConfigDebugState
 
 tasks:
   - id: task1_json
-    name: "JSON Config Debug"
+    description: "Fix bugs in a broken JSON application config file"
     difficulty: easy
-    num_bugs: 2
-    grader: server.graders.json_grader:grade_task1
-    has_grader: true
+    max_attempts: 5
+    scoring: "0.0-1.0 partial credit"
   - id: task2_yaml
-    name: "YAML Config Debug"
+    description: "Fix bugs in a broken YAML service config file"
     difficulty: easy
-    num_bugs: 2
-    grader: server.graders.yaml_grader:grade_task2
-    has_grader: true
+    max_attempts: 5
+    scoring: "0.0-1.0 partial credit"
   - id: task3_dockerfile
-    name: "Dockerfile Debug"
+    description: "Fix bugs in a broken Dockerfile"
     difficulty: medium
-    num_bugs: 3
-    grader: server.graders.dockerfile_grader:grade_task3
-    has_grader: true
+    max_attempts: 5
+    scoring: "0.0-1.0 partial credit"
   - id: task4_compose
-    name: "Docker Compose Debug"
+    description: "Fix bugs in a broken docker-compose.yml"
     difficulty: medium
-    num_bugs: 4
-    grader: server.graders.compose_grader:grade_task4
-    has_grader: true
+    max_attempts: 5
+    scoring: "0.0-1.0 partial credit"
   - id: task5_k8s
-    name: "Kubernetes Config Debug"
+    description: "Fix bugs in a broken Kubernetes deployment manifest"
     difficulty: hard
-    num_bugs: 5
-    grader: server.graders.k8s_grader:grade_task5
-    has_grader: true
+    max_attempts: 5
+    scoring: "0.0-1.0 partial credit"
   - id: task6_github_actions
-    name: "GitHub Actions Debug"
+    description: "Fix bugs in a broken GitHub Actions workflow"
     difficulty: hard
-    num_bugs: 5
-    grader: server.graders.github_actions_grader:grade_task6
-    has_grader: true
+    max_attempts: 5
+    scoring: "0.0-1.0 partial credit"
   - id: task7_nginx
-    name: "Nginx Config Debug"
+    description: "Fix bugs in a broken nginx reverse proxy config"
     difficulty: very_hard
-    num_bugs: 6
-    grader: server.graders.nginx_grader:grade_task7
-    has_grader: true
+    max_attempts: 5
+    scoring: "0.0-1.0 partial credit"
+
+observation_space:
+  broken_config: "string - the broken configuration file to fix"
+  file_type: "string - json|yaml|dockerfile|compose|k8s|github_actions|nginx"
+  error_message: "string - error message describing the bugs"
+  task_id: "string - task identifier"
+  task_description: "string - what the config should do"
+  difficulty: "string - easy|medium|hard|very_hard"
+  num_bugs: "int - number of bugs to fix"
+
+action_space:
+  fixed_config: "string (required) - your fixed configuration file"
+
+reward:
+  type: continuous
+  range: "(0.0, 1.0)"
+  shaping:
+    - "partial credit per bug fixed"
+    - "score = bugs_fixed / total_bugs"
+
+endpoints:
+  - path: /reset
+    method: POST
+  - path: /step
+    method: POST
+  - path: /state
+    method: GET
+  - path: /tasks
+    method: GET
+  - path: /grader
+    method: POST
+  - path: /baseline
+    method: GET
+
+runtime:
+  framework: FastAPI
+  python: "3.11"
+  docker: true
+  hf_spaces: true
