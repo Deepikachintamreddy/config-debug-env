@@ -321,7 +321,7 @@ def ui_get_state():
     return json.dumps(st.model_dump(), indent=2)
 
 
-with gr.Blocks(title="ConfigDebugEnv", theme=gr.themes.Soft()) as demo:
+with gr.Blocks(title="ConfigDebugEnv") as demo:
     gr.Markdown("# ConfigDebugEnv")
     gr.Markdown("An RL environment for debugging broken config files across 7 real-world formats: JSON, YAML, Dockerfile, docker-compose, Kubernetes, GitHub Actions, nginx.")
 
