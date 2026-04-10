@@ -146,6 +146,16 @@ def baseline():
     }
     return {"scores": results, "total_tasks": len(results), "tasks_with_graders": len(results)}
 
+
+
+
+
+@app.get("/baseline")
+def baseline():
+    from server.graders.grader_api import grade_task1, grade_task2, grade_task3, grade_task4, grade_task5, grade_task6, grade_task7
+    results = {"task1_json": grade_task1("{}"), "task2_yaml": grade_task2(""), "task3_dockerfile": grade_task3(""), "task4_compose": grade_task4(""), "task5_k8s": grade_task5(""), "task6_github_actions": grade_task6(""), "task7_nginx": grade_task7("")}
+    return {"scores": results, "total_tasks": 7, "tasks_with_graders": 7}
+
 # ---- Gradio Web UI ----
 
 _ui_env = ConfigDebugEnvironment()
