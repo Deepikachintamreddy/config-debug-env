@@ -103,6 +103,49 @@ def tasks():
     }
 
 
+
+
+@app.post("/grader")
+def run_grader(request: dict):
+    from server.graders.grader_api import (
+        grade_task1, grade_task2, grade_task3,
+        grade_task4, grade_task5, grade_task6, grade_task7
+    )
+    graders = {
+        "task1_json": grade_task1,
+        "task2_yaml": grade_task2,
+        "task3_dockerfile": grade_task3,
+        "task4_compose": grade_task4,
+        "task5_k8s": grade_task5,
+        "task6_github_actions": grade_task6,
+        "task7_nginx": grade_task7,
+    }
+    task_id = request.get("task_id", "task1_json")
+    fixed_config = request.get("fixed_config", "")
+    grader_fn = graders.get(task_id)
+    if not grader_fn:
+        return {"error": f"Unknown task_id: {task_id}", "score": 0.01}
+    score = grader_fn(fixed_config)
+    return {"task_id": task_id, "score": float(score)}
+
+
+@app.get("/baseline")
+def baseline():
+    from server.graders.grader_api import (
+        grade_task1, grade_task2, grade_task3,
+        grade_task4, grade_task5, grade_task6, grade_task7
+    )
+    results = {
+        "task1_json": grade_task1("{}"),
+        "task2_yaml": grade_task2(""),
+        "task3_dockerfile": grade_task3(""),
+        "task4_compose": grade_task4(""),
+        "task5_k8s": grade_task5(""),
+        "task6_github_actions": grade_task6(""),
+        "task7_nginx": grade_task7(""),
+    }
+    return {"scores": results, "total_tasks": len(results), "tasks_with_graders": len(results)}
+
 # ---- Gradio Web UI ----
 
 _ui_env = ConfigDebugEnvironment()
@@ -163,6 +206,7 @@ with gr.Blocks(title="ConfigDebugEnv") as demo:
             with gr.Row():
                 reset_btn = gr.Button("Reset Environment", variant="secondary")
                 step_btn = gr.Button("Step", variant="primary")
+                state_btn = gr.Button("Get State", variant="secondary")
 
         with gr.Column(scale=1):
             gr.Markdown("### State Observer")
@@ -177,6 +221,10 @@ with gr.Blocks(title="ConfigDebugEnv") as demo:
         fn=ui_step,
         inputs=[fixed_config_input],
         outputs=[task_info, task_desc, broken_config, error_msg, state_display, history_display],
+    )
+    state_btn.click(
+        fn=lambda: json.dumps({"episode_id": _ui_env._episode_id, "step_count": _ui_env._global_step, "total_reward": _ui_env.total_reward, "tasks_completed": _ui_env.tasks_completed}, indent=2),
+        outputs=[state_display],
     )
 
 app = gr.mount_gradio_app(app, demo, path="/")
